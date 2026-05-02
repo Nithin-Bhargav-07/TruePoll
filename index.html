@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://*.googleapis.com https://*.google.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://maps.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
+    />
+    <title>ElectIQ — Civic Election Intelligence Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&family=Noto+Sans+Tamil:wght@400;500&family=Noto+Sans+Telugu:wght@400;500&family=Noto+Sans+Kannada:wght@400;500&family=Noto+Sans+Malayalam:wght@400;500&family=Noto+Sans+Bengali:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+    <div id="reduced-motion-bg" aria-hidden="true"></div>
+
+    <header class="top-nav section-layer" id="top-nav">
+      <div class="logo" aria-label="ElectIQ logo">ElectIQ</div>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open menu">Menu</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <button class="nav-link" data-target="hero" data-i18n="heroTitle1">Home</button>
+        <button class="nav-link" data-target="quiz-section" data-i18n="quizTitle">Test Your Knowledge</button>
+        <button class="nav-link" data-target="evm-section">EVM Demo</button>
+        <button class="nav-link" data-target="encyclopedia-section" data-i18n="encyclopediaTitle">Election Encyclopedia</button>
+      </nav>
+      <div class="lang-selector" aria-label="Select language" id="language-selector">
+        <button data-lang="en" class="lang-btn active">EN</button>
+        <button data-lang="hi" class="lang-btn">हि</button>
+        <button data-lang="ta" class="lang-btn">தமிழ்</button>
+        <button data-lang="te" class="lang-btn">తెలుగు</button>
+        <button data-lang="kn" class="lang-btn">ಕನ್ನಡ</button>
+        <button data-lang="ml" class="lang-btn">മലയ</button>
+        <button data-lang="bn" class="lang-btn">বাং</button>
+        <button data-lang="mr" class="lang-btn">मरा</button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section id="hero" class="hero section-layer">
+        <div class="hero-content">
+          <h1 data-i18n="heroTitle1" class="hero-line line-1">Your Vote.</h1>
+          <h1 data-i18n="heroTitle2" class="hero-line line-2">Your Voice.</h1>
+          <h1 data-i18n="heroTitle3" class="hero-line line-3">Your Guide.</h1>
+          <p data-i18n="heroSub" class="hero-sub">Step-by-step election guidance powered by AI</p>
+          <div class="stats-bar">
+            <span class="stat-frag"><span class="stat-number" data-target="642">0</span><span class="stat-label">M votes cast in 2024</span></span>
+            <span class="stat-frag"><span class="stat-number" data-target="73">0</span><span class="stat-label">% voter turnout</span></span>
+            <span class="stat-frag"><span class="stat-number" data-target="180">0</span><span class="stat-label">+ countries</span></span>
+            <span class="stat-frag"><span class="stat-number" data-target="42">0</span><span class="stat-label">00M eligible voters worldwide</span></span>
+          </div>
+          <div class="hero-actions">
+            <button id="btn-first-time" class="btn btn-primary" data-i18n="btnFirstTime">I'm a first-time voter</button>
+            <button id="btn-specific" class="btn btn-secondary" data-i18n="btnSpecific">I need a specific answer</button>
+          </div>
+          <div class="badges">
+            <span class="badge" data-i18n="badge1">Non-partisan</span>
+            <span class="badge" data-i18n="badge2">AI-powered</span>
+            <span class="badge" data-i18n="badge3">Free &amp; open</span>
+          </div>
+          <button class="scroll-indicator" data-target="stack-section" aria-label="Scroll down">
+            <span></span>
+          </button>
+        </div>
+      </section>
+
+      <section id="stack-section" class="stack-section section-layer">
+        <div class="stack-container">
+          <article class="stack-card" data-card="1">
+            <div class="ghost">01</div>
+            <div class="stack-left">
+              <p class="cat">VOTER REGISTRATION</p>
+              <h2>Your journey starts here</h2>
+              <p>Register early to avoid deadline pressure. Every election cycle, late applications create avoidable voter stress.</p>
+            </div>
+            <div class="stack-right">
+              <svg class="donut" viewBox="0 0 240 240" aria-hidden="true">
+                <circle cx="120" cy="120" r="90" class="donut-base"></circle>
+                <circle cx="120" cy="120" r="90" class="donut-fill"></circle>
+              </svg>
+              <p>68% of eligible voters registered globally</p>
+            </div>
+          </article>
+          <article class="stack-card" data-card="2">
+            <div class="ghost">02</div>
+            <div class="stack-left">
+              <p class="cat">BALLOT EDUCATION</p>
+              <h2>Know before you go</h2>
+              <p>Understanding offices and ballot symbols before polling day helps reduce invalid votes and confusion.</p>
+            </div>
+            <div class="stack-right bars" id="ballot-bars"></div>
+          </article>
+          <article class="stack-card" data-card="3">
+            <div class="ghost">03</div>
+            <div class="stack-left">
+              <p class="cat">KEY DATES</p>
+              <h2>Never miss a deadline</h2>
+              <p>Track registration, campaign, and voting milestones. Small delays can block participation.</p>
+            </div>
+            <div class="stack-right timeline-mini" id="timeline-mini"></div>
+          </article>
+          <article class="stack-card" data-card="4">
+            <div class="ghost">04</div>
+            <div class="stack-left">
+              <p class="cat">VOTING DAY</p>
+              <h2>What to expect at the polls</h2>
+              <p>From ID checks to ink mark and EVM confirmation, the process is structured and rights-protected.</p>
+            </div>
+            <div class="stack-right checklist" id="voting-checklist"></div>
+          </article>
+          <article class="stack-card" data-card="5">
+            <div class="ghost">05</div>
+            <div class="stack-left">
+              <p class="cat">YOUR IMPACT</p>
+              <h2>Every vote shapes history</h2>
+              <p>Close margins repeatedly changed government outcomes. Participation matters in every constituency.</p>
+            </div>
+            <div class="stack-right impact-cards" id="impact-cards"></div>
+          </article>
+        </div>
+        <div class="stack-cta">
+          <h2>Ready to begin your journey?</h2>
+          <button class="btn btn-primary" data-target="wizard-section">Start Guided Wizard</button>
+        </div>
+      </section>
+
+      <section id="wizard-section" class="wizard section-layer">
+        <div id="wizard-progress"></div>
+        <div id="wizard-card" class="wizard-card" tabindex="-1"></div>
+      </section>
+
+      <section id="evm-section" class="evm section-layer">
+        <h2>EVM Demo — Experience the Voting Machine</h2>
+        <p>Practice voting before election day</p>
+        <div id="evm-root"></div>
+      </section>
+
+      <section id="encyclopedia-section" class="encyclopedia section-layer">
+        <h2 data-i18n="encyclopediaTitle">Election Encyclopedia</h2>
+        <p>Everything you need to know about Indian elections</p>
+        <div id="encyclopedia-root"></div>
+      </section>
+
+      <section id="quiz-section" class="quiz section-layer">
+        <h2 data-i18n="quizTitle">Test Your Knowledge</h2>
+        <p>How much do you know about Indian elections?</p>
+        <div id="quiz-root"></div>
+      </section>
+    </main>
+
+    <button id="qna-fab" class="qna-fab" aria-label="Ask ElectIQ">?</button>
+    <aside id="qna-drawer" class="qna-drawer" aria-hidden="true"></aside>
+
+    <footer class="section-layer">
+      <p data-i18n="footerDisclaimer">
+        ElectIQ provides general guidance. Always verify with your official electoral authority.
+      </p>
+      <p data-i18n="poweredBy">Powered by Google Gemini · Google Maps · Google Calendar</p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
+    <script src="tests.js"></script>
+  </body>
+</html>
