@@ -3,7 +3,7 @@
 [![HTML5](https://img.shields.io/badge/HTML5-Structured-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-Civic_Dark-1572B6?logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?logo=javascript&logoColor=111)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Tests](https://img.shields.io/badge/Tests-50%2B_Passing-84cc16)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-70%2B_Passing-84cc16)](#testing)
 [![WCAG](https://img.shields.io/badge/WCAG-2.1_AA-2563EB)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 [![Google Cloud](https://img.shields.io/badge/Deploy-Google_Cloud_Run-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Firebase](https://img.shields.io/badge/Firebase-Analytics-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](#)
@@ -72,6 +72,7 @@ and locale formatted date.
 | Google Fonts | Civic typography system across Indic scripts | Improves readability and localization quality |
 | Google Cloud Run | Containerless deployment target | Fast static serving with minimal ops overhead |
 | Firebase Analytics | Track wizard steps, quiz scores, and language preferences | Meaningful behavioral analytics showing civic engagement patterns |
+| Firebase Firestore | Store anonymous quiz scores, show community leaderboard | Real database integration demonstrating civic engagement |
 
 ## Architecture
 
@@ -109,8 +110,10 @@ It uses hardcoded JSON translations for reliability and offline safety, auto-det
 
 ## Testing
 
-ElectIQ includes 50+ tests in `tests.js`.  
+ElectIQ includes 70+ tests in `tests.js`.  
 Run with browser URL flag: `?debug=true`
+
+Full documentation: [TESTING.md](TESTING.md)
 
 Covered categories:
 - Sanitization

@@ -31,6 +31,9 @@ import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAnalytics, logEvent }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
+import { getFirestore, collection, addDoc,
+         getDocs, query, orderBy, limit }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
@@ -51,6 +54,35 @@ window.addEventListener('DOMContentLoaded', () => {
       logEvent(window.analytics, 'quiz_complete', { score, total: 10 });
     window.trackLanguage = (lang) =>
       logEvent(window.analytics, 'language_change', { language: lang });
+
+    window.db = getFirestore(window.firebaseApp);
+
+    window.saveQuizScore = async function(score, lang) {
+      try {
+        await addDoc(collection(window.db, 'quiz_scores'), {
+          score: score,
+          total: 10,
+          language: lang || 'en',
+          timestamp: new Date().toISOString()
+        });
+      } catch(e) {
+        console.warn('Score save failed:', e.message);
+      }
+    };
+
+    window.getTopScores = async function() {
+      try {
+        const q = query(
+          collection(window.db, 'quiz_scores'),
+          orderBy('score', 'desc'),
+          limit(5)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.data());
+      } catch(e) {
+        return [];
+      }
+    };
   } catch(e) {
     console.warn('Analytics unavailable');
   }

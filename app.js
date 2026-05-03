@@ -139,9 +139,9 @@ function startWizard(step) {
 }
 
 /**
- * @description Escapes unsafe HTML characters.
- * @param {string} str - Raw user input.
- * @returns {string} Escaped safe string.
+ * @description Sanitizes user input to prevent XSS attacks
+ * @param {string} str - Raw user input string
+ * @returns {string} Sanitized string safe for DOM insertion
  */
 function sanitize(str) {
   return String(str).replace(/[<>"'&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "&": "&amp;" }[c]));
@@ -162,9 +162,9 @@ function debounce(fn, wait = 300) {
 }
 
 /**
- * @description Applies translations and language fonts.
- * @param {string} lang - Language code.
- * @returns {void} No return value.
+ * @description Applies translations to all data-i18n elements
+ * @param {string} lang - Language code (en, hi, ta, te, kn, ml, bn, mr)
+ * @returns {void}
  */
 function applyTranslations(lang) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
@@ -205,19 +205,19 @@ function generateCalendarURL(title, date, description) {
 }
 
 /**
- * @description Opens Google Calendar event.
- * @param {string} title - Event title.
- * @param {string} date - Event date.
- * @param {string} description - Event description.
- * @returns {void} No return value.
+ * @description Opens Google Calendar with pre-filled event details
+ * @param {string} title - Event title
+ * @param {string} date - Event date in ISO format
+ * @param {string} description - Event description
+ * @returns {void} Opens calendar URL in new tab
  */
 function addToCalendar(title, date, description) {
   window.open(generateCalendarURL(title, date, description), "_blank");
 }
 
 /**
- * @description Loads Maps API dynamically.
- * @returns {void} No return value.
+ * @description Dynamically loads Google Maps JavaScript API
+ * @returns {void} Appends Maps script tag to document head
  */
 function loadMapsAPI() {
   if (!APP_CONFIG.MAPS_API_KEY || APP_CONFIG.MAPS_API_KEY.includes("YOUR_")) return;
@@ -340,9 +340,9 @@ function renderWizardProgress() {
 }
 
 /**
- * @description Renders dynamic wizard content.
- * @param {number} step - Step number.
- * @returns {void} No return value.
+ * @description Renders the specified wizard step and scrolls to top
+ * @param {number} step - Step number (1-5)
+ * @returns {void}
  */
 function renderStep(step) {
   const card = document.getElementById("wizard-card");
@@ -547,8 +547,8 @@ function wireVotingDayEvents() {
 }
 
 /**
- * @description Draws and downloads voted card image.
- * @returns {void} No return value.
+ * @description Generates and downloads an I Voted canvas image
+ * @returns {void} Downloads PNG file to user device
  */
 function generateVotedCard() {
   const canvas = document.createElement("canvas");
@@ -681,12 +681,35 @@ function renderQuizResult() {
   const finalScore = quizScore;
   if (window.trackQuiz) window.trackQuiz(finalScore);
   const badge = quizScore <= 3 ? "Democracy Learner" : quizScore <= 6 ? "Informed Voter" : quizScore <= 8 ? "Civic Champion" : "Election Expert";
-  root.innerHTML = `<div aria-live="polite"><h3>${quizScore} / 10</h3><p>${pct}%</p><h4>${badge}</h4><button class="btn btn-primary" id="quiz-retry">Try Again</button> <button class="btn btn-secondary" data-target="encyclopedia-section">Learn More</button></div>`;
+  root.innerHTML = `<div class="quiz-results" aria-live="polite"><h3>${quizScore} / 10</h3><p>${pct}%</p><h4>${badge}</h4><button class="btn btn-primary" id="quiz-retry">Try Again</button> <button class="btn btn-secondary" data-target="encyclopedia-section">Learn More</button></div>`;
   root.querySelector("#quiz-retry").addEventListener("click", () => {
     quizScore = 0;
     currentQuizIndex = 0;
     quizOrder = shuffle([...QUIZ_QUESTIONS.keys()]);
     renderQuiz();
+  });
+
+  if (window.saveQuizScore) {
+    window.saveQuizScore(
+      finalScore,
+      sessionStorage.getItem('lang') || 'en'
+    );
+  }
+
+  window.getTopScores && window.getTopScores().then(scores => {
+    if (scores.length > 0) {
+      const lb = document.createElement('div');
+      lb.className = 'leaderboard';
+      lb.innerHTML = '<h4 style="color:var(--color-accent);font-family:DM Mono,monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Community Scores</h4>' +
+        scores.map((s, i) =>
+          '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-border);font-family:DM Mono,monospace;font-size:13px;">' +
+          '<span>' + (i+1) + '. ' + s.language.toUpperCase() + '</span>' +
+          '<span style="color:var(--color-accent)">' + s.score + '/10</span>' +
+          '</div>'
+        ).join('');
+      const resultsEl = document.querySelector('.quiz-results, [class*="quiz-result"], [class*="result"]');
+      if (resultsEl) resultsEl.appendChild(lb);
+    }
   });
 }
 
@@ -761,10 +784,10 @@ function addChat(role, text) {
 }
 
 /**
- * @description Handles QnA with fallback chain.
- * @param {string} raw - Raw question.
- * @param {boolean} hasKey - Whether Gemini key exists.
- * @returns {Promise<void>} Async completion.
+ * @description Fetches response from Gemini API with fallback
+ * @param {string} userMessage - Sanitized user question
+ * @param {string} lang - Current language code for response language
+ * @returns {Promise<string>} AI response text or fallback message
  */
 async function askQuestion(raw, hasKey) {
   if (qnaCount >= MAX_QNA_QUESTIONS) {
