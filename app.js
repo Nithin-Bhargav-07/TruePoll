@@ -1,3 +1,5 @@
+'use strict';
+
 const DEBUG = false;
 const MAX_QNA_QUESTIONS = 10;
 const APP_CONFIG = typeof CONFIG === "object" ? CONFIG : { GEMINI_API_KEY: "", MAPS_API_KEY: "", CALENDAR_API_KEY: "", MAX_QNA_QUESTIONS: 10 };
@@ -62,10 +64,6 @@ let quizScore = 0;
 let quizOrder = [...QUIZ_QUESTIONS.keys()];
 let votingTab = 0;
 
-/**
- * @description Applies saved theme from localStorage.
- * @returns {void} No return value.
- */
 function initializeTheme() {
   try {
     const savedTheme = localStorage.getItem("theme");
@@ -80,10 +78,6 @@ function initializeTheme() {
   }
 }
 
-/**
- * @description Toggles between light and dark theme.
- * @returns {void} No return value.
- */
 function toggleTheme() {
   const isLight = document.body.classList.toggle("light-theme");
   try {
@@ -91,11 +85,6 @@ function toggleTheme() {
   } catch (e) {}
 }
 
-/**
- * @description Shows one SPA view and hides other major views.
- * @param {string} targetId - Target view element ID.
- * @returns {void} No return value.
- */
 function showView(targetId) {
   const viewIds = ["hero", "main-content", "scroll-stack", "quiz-section", "evm-section", "learn-section"];
   const normalizedTarget = targetId === "scroll-stack" ? "stack-section" : targetId;
@@ -128,31 +117,15 @@ function showView(targetId) {
 
 window.showView = showView;
 
-/**
- * @description Starts wizard from a given step.
- * @param {number} step - Step to start from.
- * @returns {void} No return value.
- */
 function startWizard(step) {
   showView("wizard-section");
   goToStep(step);
 }
 
-/**
- * @description Sanitizes user input to prevent XSS attacks
- * @param {string} str - Raw user input string
- * @returns {string} Sanitized string safe for DOM insertion
- */
 function sanitize(str) {
   return String(str).replace(/[<>"'&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "&": "&amp;" }[c]));
 }
 
-/**
- * @description Creates debounced wrapper.
- * @param {Function} fn - Callback function.
- * @param {number} wait - Delay in milliseconds.
- * @returns {Function} Debounced function.
- */
 function debounce(fn, wait = 300) {
   let timer = null;
   return (...args) => {
@@ -161,11 +134,6 @@ function debounce(fn, wait = 300) {
   };
 }
 
-/**
- * @description Applies translations to all data-i18n elements
- * @param {string} lang - Language code (en, hi, ta, te, kn, ml, bn, mr)
- * @returns {void}
- */
 function applyTranslations(lang) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
   document.querySelectorAll("[data-i18n]").forEach((el) => {
@@ -192,33 +160,15 @@ function applyTranslations(lang) {
   currentLang = lang;
 }
 
-/**
- * @description Generates calendar template URL.
- * @param {string} title - Event title.
- * @param {string} date - ISO date.
- * @param {string} description - Event description.
- * @returns {string} Google calendar template URL.
- */
 function generateCalendarURL(title, date, description) {
   const d = new Date(date).toISOString().replace(/-|:|\.\d{3}/g, "").slice(0, 15) + "Z";
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}&details=${encodeURIComponent(description)}`;
 }
 
-/**
- * @description Opens Google Calendar with pre-filled event details
- * @param {string} title - Event title
- * @param {string} date - Event date in ISO format
- * @param {string} description - Event description
- * @returns {void} Opens calendar URL in new tab
- */
 function addToCalendar(title, date, description) {
   window.open(generateCalendarURL(title, date, description), "_blank");
 }
 
-/**
- * @description Dynamically loads Google Maps JavaScript API
- * @returns {void} Appends Maps script tag to document head
- */
 function loadMapsAPI() {
   if (!APP_CONFIG.MAPS_API_KEY || APP_CONFIG.MAPS_API_KEY.includes("YOUR_")) return;
   window.initMapAutocomplete = function initMapAutocomplete() {
@@ -231,10 +181,6 @@ function loadMapsAPI() {
   document.head.appendChild(script);
 }
 
-/**
- * @description Initializes address autocomplete.
- * @returns {void} No return value.
- */
 function initializeAutocomplete() {
   const input = document.getElementById("location-input");
   if (!input || !window.google) return;
@@ -280,11 +226,6 @@ function initializeAutocomplete() {
   placeAutocomplete.addEventListener("gmp-select", handlePlaceEvent);
 }
 
-/**
- * @description Handles selected place and language inference.
- * @param {object} place - Google place object.
- * @returns {void} No return value.
- */
 function handleLocationSelected(place) {
   selectedPlace = place;
   const stateComp = (place.address_components || []).find((c) => c.types.includes("administrative_area_level_1"));
@@ -298,32 +239,18 @@ function handleLocationSelected(place) {
   }
 }
 
-/**
- * @description Changes active language.
- * @param {string} lang - Language code.
- * @returns {void} No return value.
- */
 function setLanguage(lang) {
   applyTranslations(lang);
   document.querySelectorAll(".lang-btn").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang));
   if (window.trackLanguage) window.trackLanguage(lang);
 }
 
-/**
- * @description Scrolls to top and renders target wizard step.
- * @param {number} step - Target step index.
- * @returns {void} No return value.
- */
 function goToStep(step) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   currentStep = Math.max(1, Math.min(5, step));
   renderStep(currentStep);
 }
 
-/**
- * @description Renders wizard progress pills.
- * @returns {void} No return value.
- */
 function renderWizardProgress() {
   const progress = document.getElementById("wizard-progress");
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
@@ -339,11 +266,6 @@ function renderWizardProgress() {
   progress.querySelectorAll("[data-step]").forEach((b) => b.addEventListener("click", () => goToStep(Number(b.dataset.step))));
 }
 
-/**
- * @description Renders the specified wizard step and scrolls to top
- * @param {number} step - Step number (1-5)
- * @returns {void}
- */
 function renderStep(step) {
   const card = document.getElementById("wizard-card");
   if (!card) return;
@@ -360,11 +282,6 @@ function renderStep(step) {
   }, 150);
 }
 
-/**
- * @description Returns HTML for each wizard step.
- * @param {number} step - Step number.
- * @returns {string} HTML markup.
- */
 function renderStepMarkup(step) {
   if (step === 1) {
     return `
@@ -427,11 +344,6 @@ function renderStepMarkup(step) {
     <div class="wizard-nav"><button class="btn btn-secondary" id="prev-step" data-i18n="back">Back</button><span class="hint" data-i18n="pressEnter">Press Enter to continue</span><button class="btn btn-primary" data-target="hero">Finish</button></div>`;
 }
 
-/**
- * @description Renders voting tab content.
- * @param {number} tab - Active tab index.
- * @returns {string} Tab HTML.
- */
 function renderVotingTab(tab) {
   const blocks = [
     ["Valid photo ID, voter slip if available, verify roll name.", "Morning 25 min, Midday 10 min, Evening 20 min."],
@@ -442,11 +354,6 @@ function renderVotingTab(tab) {
   return `<div class="tab-panel"><div class="panel-card"><h4>Checklist</h4><p>${blocks[tab][0]}</p></div><div class="panel-card"><h4>Guide</h4><p>${blocks[tab][1]}</p></div></div>`;
 }
 
-/**
- * @description Wires events per step.
- * @param {number} step - Active step.
- * @returns {void} No return value.
- */
 function wireStepEvents(step) {
   const nextBtn = document.getElementById("next-step");
   const prevBtn = document.getElementById("prev-step");
@@ -468,11 +375,6 @@ function wireStepEvents(step) {
   }
 }
 
-/**
- * @description Handles enter key progression.
- * @param {KeyboardEvent} e - Key event.
- * @returns {void} No return value.
- */
 function onEnterContinue(e) {
   if (e.key === "Enter") {
     const nextBtn = document.getElementById("next-step");
@@ -480,10 +382,6 @@ function onEnterContinue(e) {
   }
 }
 
-/**
- * @description Adds interactions for eligibility cards.
- * @returns {void} No return value.
- */
 function wireRequirementChecks() {
   [1, 2, 3, 4].forEach((n) => {
     const cb = document.getElementById(`req-${n}`);
@@ -492,10 +390,6 @@ function wireRequirementChecks() {
   updateReqUI();
 }
 
-/**
- * @description Updates requirement ring and card state.
- * @returns {void} No return value.
- */
 function updateReqUI() {
   const checks = [1, 2, 3, 4].map((n) => Boolean(document.getElementById(`req-${n}`)?.checked));
   const done = checks.filter(Boolean).length;
@@ -512,10 +406,6 @@ function updateReqUI() {
   if (nextBtn) nextBtn.disabled = done !== 4;
 }
 
-/**
- * @description Validates all requirements before moving ahead.
- * @returns {boolean} True when all checked.
- */
 function validateRequirements() {
   const done = [1, 2, 3, 4].every((n) => document.getElementById(`req-${n}`)?.checked);
   const feedback = document.getElementById("req-feedback");
@@ -527,10 +417,6 @@ function validateRequirements() {
   return true;
 }
 
-/**
- * @description Wires tab and panel events in step 4.
- * @returns {void} No return value.
- */
 function wireVotingDayEvents() {
   document.querySelectorAll(".tab-btn").forEach((btn) => btn.addEventListener("click", () => {
     votingTab = Number(btn.dataset.tab);
@@ -546,10 +432,6 @@ function wireVotingDayEvents() {
   });
 }
 
-/**
- * @description Generates and downloads an I Voted canvas image
- * @returns {void} Downloads PNG file to user device
- */
 function generateVotedCard() {
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
@@ -592,10 +474,6 @@ function generateVotedCard() {
   link.click();
 }
 
-/**
- * @description Renders EVM simulator section.
- * @returns {void} No return value.
- */
 function renderEvm() {
   const root = document.getElementById("evm-root");
   if (!root) return;
@@ -604,11 +482,6 @@ function renderEvm() {
   root.querySelector("#evm-reset")?.addEventListener("click", renderEvm);
 }
 
-/**
- * @description Triggers mock vote and VVPAT countdown.
- * @param {string} candidateLabel - Selected candidate label.
- * @returns {void} No return value.
- */
 function triggerVote(candidateLabel) {
   document.getElementById("evm-status").textContent = "Vote Recorded";
   const slip = document.getElementById("vvpat-slip");
@@ -628,10 +501,6 @@ function triggerVote(candidateLabel) {
   }, 1000);
 }
 
-/**
- * @description Renders encyclopedia interface.
- * @returns {void} No return value.
- */
 function renderEncyclopedia() {
   const topics = window.ENCYCLOPEDIA_TOPICS || [];
   const root = document.getElementById("encyclopedia-root");
@@ -647,10 +516,6 @@ function renderEncyclopedia() {
   root.querySelector("#enc-search").addEventListener("input", debounce((e) => renderList(e.target.value), 300));
 }
 
-/**
- * @description Renders quiz UI.
- * @returns {void} No return value.
- */
 function renderQuiz() {
   const root = document.getElementById("quiz-root");
   if (!root) return;
@@ -670,10 +535,6 @@ function renderQuiz() {
   }));
 }
 
-/**
- * @description Renders quiz result card.
- * @returns {void} No return value.
- */
 function renderQuizResult() {
   const root = document.getElementById("quiz-root");
   if (!root) return;
@@ -713,11 +574,6 @@ function renderQuizResult() {
   });
 }
 
-/**
- * @description Shuffles array in-place clone.
- * @param {Array} arr - Array to shuffle.
- * @returns {Array} Shuffled array.
- */
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -726,20 +582,12 @@ function shuffle(arr) {
   return arr;
 }
 
-/**
- * @description Toggles QnA drawer visibility.
- * @returns {void} No return value.
- */
 function toggleDrawer() {
   const drawer = document.getElementById("qna-drawer");
   drawer.classList.toggle("open");
   drawer.setAttribute("aria-hidden", String(!drawer.classList.contains("open")));
 }
 
-/**
- * @description Builds QnA drawer UI.
- * @returns {void} No return value.
- */
 function renderDrawer() {
   const drawer = document.getElementById("qna-drawer");
   const contentRoot = document.getElementById("qna-drawer-content");
@@ -765,12 +613,6 @@ function renderDrawer() {
   applyTranslations(currentLang);
 }
 
-/**
- * @description Appends chat bubble in drawer.
- * @param {string} role - Message role.
- * @param {string} text - Chat message.
- * @returns {void} No return value.
- */
 function addChat(role, text) {
   const log = document.getElementById("chat-log");
   if (!log) return;
@@ -783,12 +625,6 @@ function addChat(role, text) {
   log.scrollTop = log.scrollHeight;
 }
 
-/**
- * @description Fetches response from Gemini API with fallback
- * @param {string} userMessage - Sanitized user question
- * @param {string} lang - Current language code for response language
- * @returns {Promise<string>} AI response text or fallback message
- */
 async function askQuestion(raw, hasKey) {
   if (qnaCount >= MAX_QNA_QUESTIONS) {
     addChat("assistant", "Session limit reached. Please refresh to ask more.");
@@ -824,10 +660,6 @@ async function askQuestion(raw, hasKey) {
   }
 }
 
-/**
- * @description Initializes Three.js particle background.
- * @returns {void} No return value.
- */
 function initParticles() {
   const canvas = document.getElementById("particle-canvas");
   if (!canvas || window.matchMedia("(prefers-reduced-motion: reduce)").matches || !window.THREE) return;
@@ -881,10 +713,6 @@ window.ENCYCLOPEDIA_TOPICS = [
   { category: "At the Booth", title: "What is NOTA?", body: "NOTA is None of the Above option on EVM and is counted officially." }
 ];
 
-/**
- * @description Initializes all app modules on load.
- * @returns {void} No return value.
- */
 function initApp() {
   initializeTheme();
   setLanguage(currentLang);
@@ -913,12 +741,6 @@ function initApp() {
   showView("hero");
 }
 
-/**
- * @description Animates numeric stat from zero.
- * @param {HTMLElement} el - Target element.
- * @param {number} target - Target number.
- * @returns {void} No return value.
- */
 function animateNumber(el, target) {
   const duration = 1200;
   const start = performance.now();
@@ -930,10 +752,6 @@ function animateNumber(el, target) {
   requestAnimationFrame(tick);
 }
 
-/**
- * @description Configures sticky card and section observers.
- * @returns {void} No return value.
- */
 function setupStackAnimations() {
   const cards = [...document.querySelectorAll(".stack-card")];
   const io = new IntersectionObserver((entries) => {
