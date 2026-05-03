@@ -14,7 +14,7 @@
 
 ## Live Demo
 
-Deployment URL: `https://YOUR-CLOUD-RUN-URL.a.run.app`
+Deployment URL: `https://electiq-a66b3.web.app/#main-content`
 
 ## Solution Overview
 
