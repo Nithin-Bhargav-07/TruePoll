@@ -63,82 +63,6 @@ let quizOrder = [...QUIZ_QUESTIONS.keys()];
 let votingTab = 0;
 
 /**
- * @description Applies saved theme from localStorage.
- * @returns {void} No return value.
- */
-function initializeTheme() {
-  try {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "light") {
-      document.body.classList.add("light-theme");
-    } else {
-      document.body.classList.remove("light-theme");
-    }
-    document.documentElement.classList.remove("preload-light");
-  } catch (e) {
-    document.documentElement.classList.remove("preload-light");
-  }
-}
-
-/**
- * @description Toggles between light and dark theme.
- * @returns {void} No return value.
- */
-function toggleTheme() {
-  const isLight = document.body.classList.toggle("light-theme");
-  try {
-    localStorage.setItem("theme", isLight ? "light" : "dark");
-  } catch (e) {}
-}
-
-/**
- * @description Shows one SPA view and hides other major views.
- * @param {string} targetId - Target view element ID.
- * @returns {void} No return value.
- */
-function showView(targetId) {
-  const viewIds = ["hero", "main-content", "scroll-stack", "quiz-section", "evm-section", "learn-section"];
-  const normalizedTarget = targetId === "scroll-stack" ? "stack-section" : targetId;
-  viewIds.forEach((id) => {
-    const normalizedId = id === "scroll-stack" ? "stack-section" : id;
-    const el = document.getElementById(normalizedId);
-    if (!el) return;
-    el.hidden = true;
-    el.style.display = "none";
-  });
-  const mainContent = document.getElementById("main-content");
-  if (mainContent) {
-    mainContent.hidden = false;
-    mainContent.style.display = "";
-  }
-  const majorSections = ["hero", "stack-section", "wizard-section", "quiz-section", "evm-section", "learn-section"];
-  majorSections.forEach((id) => {
-    const section = document.getElementById(id);
-    if (!section) return;
-    section.hidden = true;
-    section.style.display = "none";
-  });
-  const targetEl = document.getElementById(normalizedTarget);
-  if (targetEl) {
-    targetEl.hidden = false;
-    targetEl.style.display = "";
-  }
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-window.showView = showView;
-
-/**
- * @description Starts wizard from a given step.
- * @param {number} step - Step to start from.
- * @returns {void} No return value.
- */
-function startWizard(step) {
-  showView("wizard-section");
-  goToStep(step);
-}
-
-/**
  * @description Escapes unsafe HTML characters.
  * @param {string} str - Raw user input.
  * @returns {string} Escaped safe string.
@@ -221,11 +145,11 @@ function addToCalendar(title, date, description) {
  */
 function loadMapsAPI() {
   if (!APP_CONFIG.MAPS_API_KEY || APP_CONFIG.MAPS_API_KEY.includes("YOUR_")) return;
-  window.initMapAutocomplete = function initMapAutocomplete() {
+  window.initMap = function initMap() {
     initializeAutocomplete();
   };
   const script = document.createElement("script");
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${APP_CONFIG.MAPS_API_KEY}&libraries=places&loading=async&callback=initMapAutocomplete`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${APP_CONFIG.MAPS_API_KEY}&libraries=places&callback=initMap`;
   script.async = true;
   script.defer = true;
   document.head.appendChild(script);
@@ -238,46 +162,15 @@ function loadMapsAPI() {
 function initializeAutocomplete() {
   const input = document.getElementById("location-input");
   if (!input || !window.google) return;
-  const host = document.getElementById("location-autocomplete-host");
-  if (!host || !google.maps?.places?.PlaceAutocompleteElement) {
-    return;
-  }
-  host.innerHTML = "";
-  const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement({
-    componentRestrictions: { country: ["in"] },
-    requestedLanguage: "en"
+  const autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ["geocode"],
+    componentRestrictions: { country: "in" },
+    fields: ["address_components", "geometry", "name", "formatted_address"]
   });
-  placeAutocomplete.id = "place-autocomplete";
-  placeAutocomplete.setAttribute("aria-label", "Search location");
-  host.appendChild(placeAutocomplete);
-  const handlePlaceEvent = async (event) => {
-    try {
-      const prediction = event?.placePrediction || event?.detail?.placePrediction;
-      if (!prediction) return;
-      const place = prediction.toPlace();
-      await place.fetchFields({
-        fields: ["addressComponents", "displayName", "formattedAddress", "location"]
-      });
-      const adaptedPlace = {
-        name: place.displayName || "",
-        formatted_address: place.formattedAddress || "",
-        geometry: { location: place.location || null },
-        address_components: (place.addressComponents || []).map((c) => ({
-          long_name: c.longText || c.long_name || "",
-          short_name: c.shortText || c.short_name || "",
-          types: c.types || []
-        }))
-      };
-      if (input) input.value = adaptedPlace.formatted_address || adaptedPlace.name || "";
-      handleLocationSelected(adaptedPlace);
-    } catch (error) {
-      if (DEBUG) {
-        return;
-      }
-    }
-  };
-  placeAutocomplete.addEventListener("gmp-placeselect", handlePlaceEvent);
-  placeAutocomplete.addEventListener("gmp-select", handlePlaceEvent);
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (place.address_components) handleLocationSelected(place);
+  });
 }
 
 /**
@@ -306,7 +199,6 @@ function handleLocationSelected(place) {
 function setLanguage(lang) {
   applyTranslations(lang);
   document.querySelectorAll(".lang-btn").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang));
-  if (window.trackLanguage) window.trackLanguage(lang);
 }
 
 /**
@@ -356,7 +248,6 @@ function renderStep(step) {
     wireStepEvents(step);
     renderWizardProgress();
     applyTranslations(currentLang);
-    if (window.trackStep) window.trackStep('step_' + currentStep);
   }, 150);
 }
 
@@ -372,7 +263,6 @@ function renderStepMarkup(step) {
       <p data-i18n="whereSub">Enter your address to find your electoral district</p>
       <label for="location-input" class="sr-only">Location</label>
       <input id="location-input" data-i18n-placeholder="locationPlaceholder" placeholder="Start typing your address..." />
-      <div id="location-autocomplete-host" style="margin-top:12px;"></div>
       <div id="mini-map" style="display:none;height:200px;margin-top:12px;border-radius:12px;"></div>
       <div class="wizard-nav">
         <span></span>
@@ -678,8 +568,6 @@ function renderQuizResult() {
   const root = document.getElementById("quiz-root");
   if (!root) return;
   const pct = Math.round((quizScore / 10) * 100);
-  const finalScore = quizScore;
-  if (window.trackQuiz) window.trackQuiz(finalScore);
   const badge = quizScore <= 3 ? "Democracy Learner" : quizScore <= 6 ? "Informed Voter" : quizScore <= 8 ? "Civic Champion" : "Election Expert";
   root.innerHTML = `<div aria-live="polite"><h3>${quizScore} / 10</h3><p>${pct}%</p><h4>${badge}</h4><button class="btn btn-primary" id="quiz-retry">Try Again</button> <button class="btn btn-secondary" data-target="encyclopedia-section">Learn More</button></div>`;
   root.querySelector("#quiz-retry").addEventListener("click", () => {
@@ -719,26 +607,14 @@ function toggleDrawer() {
  */
 function renderDrawer() {
   const drawer = document.getElementById("qna-drawer");
-  const contentRoot = document.getElementById("qna-drawer-content");
-  const chatInput = document.getElementById("chat-input");
-  const chatSend = document.getElementById("chat-send");
-  const chatClose = document.getElementById("chat-close");
   if (!drawer) return;
-  if (!contentRoot) return;
-  if (!chatInput || !chatSend || !chatClose) return;
   const hasKey = APP_CONFIG.GEMINI_API_KEY && APP_CONFIG.GEMINI_API_KEY !== "YOUR_GEMINI_API_KEY_HERE" && APP_CONFIG.GEMINI_API_KEY.length > 10;
-  contentRoot.innerHTML = `<h3>ElectIQ Assistant</h3><p>${langNames[currentLang]}</p>${hasKey ? "" : "<div class='panel-card'>Demo Mode — Add Gemini API key for live answers</div>"}<div id="chat-log"></div><div id="suggestions"></div><p>${qnaCount}/${MAX_QNA_QUESTIONS} questions</p>`;
+  drawer.innerHTML = `<div style="padding:14px"><h3>ElectIQ Assistant</h3><p>${langNames[currentLang]}</p>${hasKey ? "" : "<div class='panel-card'>Demo Mode — Add Gemini API key for live answers</div>"}<div id="chat-log" style="height:55vh;overflow:auto"></div><div id="suggestions"></div><p>${qnaCount}/${MAX_QNA_QUESTIONS} questions</p><label class="sr-only" for="chat-input">Ask question</label><input id="chat-input" data-i18n-placeholder="chatPlaceholder" placeholder="Ask about Indian elections..." /><button id="chat-send" class="btn btn-primary" data-i18n="chatSend">Send</button><button id="chat-close" class="btn btn-secondary">Close</button></div>`;
   const suggestions = shuffle([...DEMO_QA]).slice(0, 4);
   drawer.querySelector("#suggestions").innerHTML = suggestions.map((s) => `<button class="btn btn-secondary q-chip" style="width:100%;margin-top:6px">${sanitize(s.q)}</button>`).join("");
   drawer.querySelectorAll(".q-chip").forEach((chip, i) => chip.addEventListener("click", () => askQuestion(suggestions[i].q, hasKey)));
-  chatSend.onclick = () => askQuestion(chatInput.value, hasKey);
-  chatClose.onclick = toggleDrawer;
-  chatInput.onkeydown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      askQuestion(chatInput.value, hasKey);
-    }
-  };
+  drawer.querySelector("#chat-send").addEventListener("click", () => askQuestion(drawer.querySelector("#chat-input").value, hasKey));
+  drawer.querySelector("#chat-close").addEventListener("click", toggleDrawer);
   applyTranslations(currentLang);
 }
 
@@ -863,7 +739,7 @@ window.ENCYCLOPEDIA_TOPICS = [
  * @returns {void} No return value.
  */
 function initApp() {
-  initializeTheme();
+  initParticles();
   setLanguage(currentLang);
   renderDrawer();
   renderEvm();
@@ -872,22 +748,11 @@ function initApp() {
   renderStep(1);
   loadMapsAPI();
   document.getElementById("qna-fab")?.addEventListener("click", toggleDrawer);
-  document.getElementById("btn-close-qna")?.addEventListener("click", toggleDrawer);
-  document.getElementById("btn-first-time")?.addEventListener("click", () => {
-    showView("main-content");
-    startWizard(1);
-  });
-  document.getElementById("btnStartWizard")?.addEventListener("click", () => {
-    showView("main-content");
-    startWizard(1);
-  });
-  document.getElementById("btn-specific")?.addEventListener("click", toggleDrawer);
-  document.getElementById("theme-toggle")?.addEventListener("click", toggleTheme);
   document.getElementById("menu-toggle")?.addEventListener("click", () => document.getElementById("main-nav").classList.toggle("open"));
+  document.querySelectorAll("[data-target]").forEach((el) => el.addEventListener("click", () => document.getElementById(el.dataset.target)?.scrollIntoView({ behavior: "smooth" })));
   document.querySelectorAll(".lang-btn").forEach((btn) => btn.addEventListener("click", () => setLanguage(btn.dataset.lang)));
   document.querySelectorAll(".stat-number").forEach((el) => animateNumber(el, Number(el.dataset.target)));
   setupStackAnimations();
-  showView("hero");
 }
 
 /**

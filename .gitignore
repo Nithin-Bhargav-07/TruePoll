@@ -6,3 +6,11 @@ config.js
 dist/
 *.py
 *.pyc
+# Firebase (local only)
+.firebase/
+.firebaserc
+firebase.json
+firestore.rules
+firestore.indexes.json
+404.html
+firebase-debug.log

@@ -6,7 +6,6 @@
 [![Tests](https://img.shields.io/badge/Tests-50%2B_Passing-84cc16)](#testing)
 [![WCAG](https://img.shields.io/badge/WCAG-2.1_AA-2563EB)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 [![Google Cloud](https://img.shields.io/badge/Deploy-Google_Cloud_Run-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
-[![Firebase](https://img.shields.io/badge/Firebase-Analytics-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](#)
 
 ## Problem Statement
 
@@ -34,34 +33,6 @@ ElectIQ is a mobile-first civic education web app for Indian voters that transfo
 | Maps Integration | Google Places autocomplete, state extraction, polling station context |
 | Calendar Integration | One-click Google Calendar event creation for election milestones |
 
-## Innovation Points
-
-**Hardcoded i18n over API translation**
-ElectIQ translates the entire UI via structured JSON with
-script-specific Noto Sans font switching. Reliable offline,
-zero API cost, instant rendering. Competing solutions use
-a single Google Translate script tag.
-
-**Secret Manager over obfuscation**
-API keys stored in Google Secret Manager and injected at
-deploy time via Cloud Shell. Production-grade security vs
-base64 atob() encoding which any developer reverses instantly.
-
-**3-level AI fallback**
-Local Knowledge Base (instant) then Gemini 2.5 Flash (live)
-then graceful error message. Users always receive an answer
-even during API outages or rate limits.
-
-**Cloud Run over static hosting**
-Deployed as containerized Node.js Express app on Google Cloud
-Run rather than static file hosting. Demonstrates real cloud
-engineering competency beyond basic deployment.
-
-**Canvas I Voted Card**
-Generates downloadable social image using Canvas API with
-text rendered in the user selected Indian language script
-and locale formatted date.
-
 ## Google Services Used
 
 | Service | How Used | Why Meaningful |
@@ -71,24 +42,21 @@ and locale formatted date.
 | Google Calendar API | Event template links for key election milestones | Helps voters remember deadlines and election day |
 | Google Fonts | Civic typography system across Indic scripts | Improves readability and localization quality |
 | Google Cloud Run | Containerless deployment target | Fast static serving with minimal ops overhead |
-| Firebase Analytics | Track wizard steps, quiz scores, and language preferences | Meaningful behavioral analytics showing civic engagement patterns |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  U[Citizen User] --> B[Browser]
+  U[User] --> B[Browser]
   B --> H[index.html]
-  H --> C[config.js Keys]
-  H --> T[translations.js 8 Languages]
-  H --> A[app.js Logic]
-  A --> G[Gemini 2.5 Flash]
+  H --> C[config.js keys]
+  H --> T[translations.js i18n data]
+  H --> A[app.js logic]
+  A --> G[Gemini API Q&A]
   A --> M[Google Maps API]
-  A --> K[Google Calendar]
-  A --> F[Firebase Analytics]
-  C --> SM[Secret Manager]
-  H --> CR[Cloud Run]
-  CR --> E[Express Server]
+  A --> K[Google Calendar links]
+  A --> T
+  B --> R[Cloud Run Deployment]
 ```
 
 ## Security
@@ -100,7 +68,6 @@ flowchart LR
 | Rate Limiting | 10 req/session | Built into Q&A module |
 | CSP | Content Security Policy | Meta CSP in `index.html` |
 | Referrer | Domain restriction | Google Cloud Console API key restrictions |
-| Firebase Analytics | Anonymized event tracking only, zero PII collected | Firebase SDK |
 
 ## Multilingual Support
 

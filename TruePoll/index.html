@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self' https://*.googleapis.com https://*.google.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://*.gstatic.com https://*.firebaseio.com https://*.firebase.com; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://maps.googleapis.com https://cdnjs.cloudflare.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://maps.gstatic.com https://*.googleapis.com https://*.google.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://*.firebaseio.com;"
+      content="default-src 'self' https://*.googleapis.com https://*.google.com https://fonts.gstatic.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://*.googleapis.com https://maps.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
     />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗳️</text></svg>">
     <title>ElectIQ — Civic Election Intelligence Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,58 +14,11 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&family=Noto+Sans+Tamil:wght@400;500&family=Noto+Sans+Telugu:wght@400;500&family=Noto+Sans+Kannada:wght@400;500&family=Noto+Sans+Malayalam:wght@400;500&family=Noto+Sans+Bengali:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <script>
-      (function applySavedTheme() {
-        try {
-          if (localStorage.getItem("theme") === "light") {
-            document.documentElement.classList.add("preload-light");
-          }
-        } catch (e) {}
-      })();
-    </script>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script type="module">
-import { initializeApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAnalytics, logEvent }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
-
-window.addEventListener('DOMContentLoaded', () => {
-  try {
-    const firebaseConfig = {
-      apiKey: CONFIG.GEMINI_API_KEY,
-      projectId: "electiq-civic",
-      appId: "electiq-web"
-    };
-    window.firebaseApp = initializeApp(firebaseConfig);
-    window.analytics = getAnalytics(window.firebaseApp);
-    logEvent(window.analytics, 'page_view', {
-      page_title: 'ElectIQ',
-      page_location: window.location.href
-    });
-    window.trackStep = (name) =>
-      logEvent(window.analytics, 'wizard_step', { step_name: name });
-    window.trackQuiz = (score) =>
-      logEvent(window.analytics, 'quiz_complete', { score, total: 10 });
-    window.trackLanguage = (lang) =>
-      logEvent(window.analytics, 'language_change', { language: lang });
-  } catch(e) {
-    console.warn('Analytics unavailable');
-  }
-});
-    </script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
-    <div id="dynamic-rings" aria-hidden="true">
-      <span class="ring ring-1"></span>
-      <span class="ring ring-2"></span>
-      <span class="ring ring-3"></span>
-      <span class="ring ring-4"></span>
-      <span class="ring ring-5"></span>
-      <span class="ring ring-6"></span>
-    </div>
     <canvas id="particle-canvas" aria-hidden="true"></canvas>
     <div id="reduced-motion-bg" aria-hidden="true"></div>
 
@@ -74,10 +26,10 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="logo" aria-label="ElectIQ logo">ElectIQ</div>
       <button class="menu-toggle" id="menu-toggle" aria-label="Open menu">Menu</button>
       <nav class="main-nav" id="main-nav" aria-label="Main navigation">
-        <button class="nav-link" onclick="showView('hero')" data-i18n="heroTitle1">Home</button>
-        <button class="nav-link" onclick="showView('quiz-section')" data-i18n="quizTitle">Test Your Knowledge</button>
-        <button class="nav-link" onclick="showView('evm-section')">EVM Demo</button>
-        <button class="nav-link" onclick="showView('learn-section')" data-i18n="encyclopediaTitle">Election Encyclopedia</button>
+        <button class="nav-link" data-target="hero" data-i18n="heroTitle1">Home</button>
+        <button class="nav-link" data-target="quiz-section" data-i18n="quizTitle">Test Your Knowledge</button>
+        <button class="nav-link" data-target="evm-section">EVM Demo</button>
+        <button class="nav-link" data-target="encyclopedia-section" data-i18n="encyclopediaTitle">Election Encyclopedia</button>
       </nav>
       <div class="lang-selector" aria-label="Select language" id="language-selector">
         <button data-lang="en" class="lang-btn active">EN</button>
@@ -89,7 +41,6 @@ window.addEventListener('DOMContentLoaded', () => {
         <button data-lang="bn" class="lang-btn">বাং</button>
         <button data-lang="mr" class="lang-btn">मरा</button>
       </div>
-      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">🌓</button>
     </header>
 
     <main id="main-content">
@@ -185,21 +136,19 @@ window.addEventListener('DOMContentLoaded', () => {
         <div id="wizard-card" class="wizard-card" tabindex="-1"></div>
       </section>
 
-      <section id="evm-section" class="evm section-layer" hidden>
+      <section id="evm-section" class="evm section-layer">
         <h2>EVM Demo — Experience the Voting Machine</h2>
         <p>Practice voting before election day</p>
         <div id="evm-root"></div>
       </section>
 
-      <div id="learn-section" hidden>
-        <section id="encyclopedia-section" class="encyclopedia section-layer">
-          <h2 data-i18n="encyclopediaTitle">Election Encyclopedia</h2>
-          <p>Everything you need to know about Indian elections</p>
-          <div id="encyclopedia-root"></div>
-        </section>
-      </div>
+      <section id="encyclopedia-section" class="encyclopedia section-layer">
+        <h2 data-i18n="encyclopediaTitle">Election Encyclopedia</h2>
+        <p>Everything you need to know about Indian elections</p>
+        <div id="encyclopedia-root"></div>
+      </section>
 
-      <section id="quiz-section" class="quiz section-layer" hidden>
+      <section id="quiz-section" class="quiz section-layer">
         <h2 data-i18n="quizTitle">Test Your Knowledge</h2>
         <p>How much do you know about Indian elections?</p>
         <div id="quiz-root"></div>
@@ -207,26 +156,9 @@ window.addEventListener('DOMContentLoaded', () => {
     </main>
 
     <button id="qna-fab" class="qna-fab" aria-label="Ask ElectIQ">?</button>
-    <aside id="qna-drawer" class="qna-drawer" aria-hidden="true">
-      <button
-        id="btn-close-qna"
-        aria-label="Close chat"
-        style="position:absolute;top:10px;right:10px;background:none;border:none;color:#fff;font-size:28px;line-height:1;cursor:pointer;"
-      >
-        &times;
-      </button>
-      <div id="qna-drawer-content"></div>
-      <div id="qna-input-wrap">
-        <label class="sr-only" for="chat-input">Ask question</label>
-        <input id="chat-input" data-i18n-placeholder="chatPlaceholder" placeholder="Ask about Indian elections..." />
-        <div class="qna-input-actions">
-          <button id="chat-send" class="btn btn-primary" data-i18n="chatSend">Send</button>
-          <button id="chat-close" class="btn btn-secondary">Close</button>
-        </div>
-      </div>
-    </aside>
+    <aside id="qna-drawer" class="qna-drawer" aria-hidden="true"></aside>
 
-    <footer class="section-layer app-footer">
+    <footer class="section-layer">
       <p data-i18n="footerDisclaimer">
         ElectIQ provides general guidance. Always verify with your official electoral authority.
       </p>
