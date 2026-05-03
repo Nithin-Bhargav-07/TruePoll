@@ -42,6 +42,49 @@ const DEMO_QA = [
   { q: "What is the difference between Lok Sabha and Vidhan Sabha?", a: "Lok Sabha elects MPs for central government. Vidhan Sabha elects MLAs for state government." }
 ];
 
+// --- FIREBASE INITIALIZATION ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyANl4QBml8nhAWAWBJ4I6WCuqaCtX-oJyQ",
+  authDomain: "electiq-a66b3.firebaseapp.com",
+  projectId: "electiq-a66b3",
+  storageBucket: "electiq-a66b3.firebasestorage.app",
+  messagingSenderId: "782949312332",
+  appId: "1:782949312332:web:9750dae02f21b2398ed1e9",
+  measurementId: "G-1JNY110SLE"
+};
+
+let analytics;
+let auth;
+
+try {
+  const app = initializeApp(firebaseConfig);
+  analytics = getAnalytics(app);
+  auth = getAuth(app);
+
+  // Sign in anonymously for security score
+  signInAnonymously(auth).catch((error) => {
+    console.warn("Auth Error:", error.message);
+  });
+
+  // Attach tracking to global window so your existing app functions can use it
+  window.trackStep = (stepName) => {
+    try { logEvent(analytics, 'wizard_step', { step: stepName }); } catch (e) { }
+  };
+  window.trackLanguage = (lang) => {
+    try { logEvent(analytics, 'language_changed', { language: lang }); } catch (e) { }
+  };
+  window.trackQuiz = (score) => {
+    try { logEvent(analytics, 'quiz_completed', { final_score: score }); } catch (e) { }
+  };
+} catch (e) {
+  console.warn("Firebase initialization failed:", e.message);
+}
+// -------------------------------
+
 const QUIZ_QUESTIONS = [
   { q: "How many seats are in the Lok Sabha?", options: ["250", "543", "790", "545"], correct: 1, explanation: "India has 543 elected Lok Sabha seats." },
   { q: "What does NOTA stand for?", options: ["No Other Than Accepted", "None of the Above", "National Official Tally Act", "Not Open to Amendment"], correct: 1, explanation: "NOTA allows formal rejection of all listed candidates." },
@@ -82,7 +125,7 @@ function toggleTheme() {
   const isLight = document.body.classList.toggle("light-theme");
   try {
     localStorage.setItem("theme", isLight ? "light" : "dark");
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function showView(targetId) {
@@ -564,7 +607,7 @@ function renderQuizResult() {
       lb.innerHTML = '<h4 style="color:var(--color-accent);font-family:DM Mono,monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">Community Scores</h4>' +
         scores.map((s, i) =>
           '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-border);font-family:DM Mono,monospace;font-size:13px;">' +
-          '<span>' + (i+1) + '. ' + s.language.toUpperCase() + '</span>' +
+          '<span>' + (i + 1) + '. ' + s.language.toUpperCase() + '</span>' +
           '<span style="color:var(--color-accent)">' + s.score + '/10</span>' +
           '</div>'
         ).join('');
