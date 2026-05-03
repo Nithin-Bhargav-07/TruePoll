@@ -43,10 +43,6 @@ const DEMO_QA = [
 ];
 
 // --- FIREBASE INITIALIZATION ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyANl4QBml8nhAWAWBJ4I6WCuqaCtX-oJyQ",
   authDomain: "electiq-a66b3.firebaseapp.com",
